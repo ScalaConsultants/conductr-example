@@ -5,6 +5,9 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
+import com.typesafe.conductr.bundlelib.akka.{Env, StatusService}
+import com.typesafe.conductr.lib.akka.ConnectionContext
+import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -17,8 +20,12 @@ object Server extends App {
 
   val httpService = Http()
 
-  val HOST = "127.0.0.1"
-  val PORT = 8080
+  implicit val connectionContext = ConnectionContext(httpService, flowMaterializer)
+
+  val config = Env.asConfig.withFallback(ConfigFactory.load())
+
+  val HOST = config.getString("microservice.host")
+  val PORT = config.getInt("microservice.port")
 
   val serverSource: Source[Http.IncomingConnection, Future[Http.ServerBinding]] =
     httpService.bind(interface = HOST, PORT)
@@ -30,8 +37,8 @@ object Server extends App {
     }).run()
 
   println(s"Server is now online at http://$HOST:$PORT\n")
-
-
+  //Signal to ConductR that service is online
+  StatusService.signalStartedOrExit()
 
 
   //shutdown Hook
