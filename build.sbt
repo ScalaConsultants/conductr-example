@@ -1,6 +1,6 @@
 import com.lightbend.conductr.sbt.BundleImport.ByteConversions._
 
-name := "Scalac-ConductR-example-microservice"
+name := "conductr-microservice"
 
 version := "1.0.0"
 
